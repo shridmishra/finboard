@@ -1,38 +1,56 @@
 "use client";
+import RGL, { WidthProvider } from "react-grid-layout";
 import { useDashboardStore } from "@/stores/dashboardStore";
 import WidgetShell from "./WidgetShell";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
+import AddWidget from "./AddWidget";
+
+const ReactGridLayout = WidthProvider(RGL);
 
 export default function Dashboard() {
   const widgets = useDashboardStore((s) => s.widgets);
-  const addWidget = useDashboardStore((s) => s.addWidget);
+  const updateWidget = useDashboardStore((s) => s.updateWidget);
 
   return (
     <div className="p-4">
-      <div className="mb-4 flex gap-2">
-        <button
-          onClick={() => addWidget("chart")}
-          className="px-3 py-1 rounded bg-blue-500 text-white"
-        >
-          Add Chart
-        </button>
-        <button
-          onClick={() => addWidget("table")}
-          className="px-3 py-1 rounded bg-green-500 text-white"
-        >
-          Add Table
-        </button>
-        <button
-          onClick={() => addWidget("card")}
-          className="px-3 py-1 rounded bg-purple-500 text-white"
-        >
-          Add Card
-        </button>
-      </div>
+      <ReactGridLayout
+        cols={12}
+        rowHeight={30}
+        width={1200}
+        draggableHandle=".drag-handle"   // ✅ only header is draggable
+        draggableCancel=".non-draggable" // optional safeguard
+        onLayoutChange={(layout) => {
+          layout.forEach((item) => {
+            const widget = widgets.find((w) => w.id === item.i);
+            if (
+              widget &&
+              (widget.position.x !== item.x ||
+                widget.position.y !== item.y ||
+                widget.position.w !== item.w ||
+                widget.position.h !== item.h)
+            ) {
+              updateWidget(item.i, {
+                position: { x: item.x, y: item.y, w: item.w, h: item.h },
+              });
+            }
+          });
+        }}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      >
+
         {widgets.map((w) => (
-          <WidgetShell key={w.id} widget={w} />
+          <div key={w.id} data-grid={w.position}>
+            <WidgetShell widget={w} />
+          </div>
         ))}
+      </ReactGridLayout>
+
+      <div
+        key="add-widget"
+        data-grid={{ x: 0, y: Infinity, w: 4, h: 4, static: true }}
+      >
+        <AddWidget />
       </div>
     </div>
   );

@@ -1,18 +1,20 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { WidgetConfig } from '../types/widget';
-import { nanoid } from 'nanoid';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { WidgetConfig } from "../types/widget";
+import { nanoid } from "nanoid";
 
 type State = {
   widgets: WidgetConfig[];
-  addWidget: (kind: WidgetConfig['kind']) => void;
+  addWidget: (kind: WidgetConfig["kind"]) => void;
   removeWidget: (id: string) => void;
+  updateWidget: (id: string, patch: Partial<WidgetConfig>) => void;
 };
 
 export const useDashboardStore = create<State>()(
   persist(
     (set) => ({
       widgets: [],
+
       addWidget: (kind) => {
         const newWidget: WidgetConfig = {
           id: nanoid(),
@@ -23,9 +25,20 @@ export const useDashboardStore = create<State>()(
         };
         set((s) => ({ widgets: [...s.widgets, newWidget] }));
       },
+
       removeWidget: (id) =>
         set((s) => ({ widgets: s.widgets.filter((w) => w.id !== id) })),
+
+      updateWidget: (id, patch) =>
+        set((s) => ({
+          widgets: s.widgets.map((w) =>
+            w.id === id ? { ...w, ...patch } : w
+          ),
+        })),
     }),
-    { name: 'finboard-dashboard' }
+    
+    {
+      name: "finboard-dashboard", // key in localStorage
+    }
   )
 );

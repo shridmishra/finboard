@@ -9,7 +9,7 @@ export default function ThemeToggle() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   return (
-    <div className="flex items-center  ">
+    <div className="flex items-center mx-6">
       <div className='brutal p-2 rounded-md'>
          {isDarkMode ? (
         <Sun
