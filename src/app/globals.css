@@ -1,26 +1,72 @@
+/* Import Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap");
+
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* Enable .dark class for dark mode utilities */
+@custom-variant dark (&:where(.dark, .dark *));
 
+/* Tailwind theme tokens — these generate utilities like font-heading, bg-background */
 @theme inline {
+  /* Font families */
+  --font-heading: "Sora", sans-serif;   /* or "DM Sans" */
+  --font-body: "Sora", sans-serif;      /* or "DM Sans" */
+
+  /* Colors mapped to CSS variables */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-main: var(--main);
+  --color-main-light: var(--main-light);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-overlay: var(--overlay);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Light mode variables */
+:root {
+  --background: oklch(94.3% 0.018 135);
+  --foreground: oklch(0% 0 0);
+  --main: oklch(66.9% 0.184 135);      /* base green */
+  --main-light: oklch(94.3% 0.018 135);
+  --border: oklch(0% 0 0);
+  --ring: oklch(0% 0 0);
+  --overlay: oklch(0% 0 0 / 0.8);
+}
+
+/* Dark mode variables */
+.dark {
+  --background: oklch(30.1% 0.034 135);
+  --foreground: oklch(92.5% 0 0);
+  --main: oklch(61.9% 0.169 135);      /* darker green */
+  --border: oklch(0% 0 0);
+  --ring: oklch(100% 0 0);
+  --overlay: oklch(0% 0 0 / 0.8);
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Brutalist style */
+  .brutal {
+    @apply border-2 bg-white text-black rounded-md shadow-[2px_2px_0_0_#000];
+  }
+  .dark .brutal {
+    @apply bg-black text-white border-white shadow-[2px_2px_0_0_#fff];
+  }
+}
+
+/* Optional background grid */
+.bg-grid {
+  background-color: var(--background);
+  background-image:
+    linear-gradient(to right, color-mix(in oklch, var(--foreground) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklch, var(--foreground) 10%, transparent) 1px, transparent 1px);
+  background-size: 75px 75px;
 }
