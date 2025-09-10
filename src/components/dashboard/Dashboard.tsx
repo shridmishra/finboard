@@ -13,10 +13,14 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 export default function Dashboard() {
   const widgets = useDashboardStore((s) => s.widgets);
   const updateWidget = useDashboardStore((s) => s.updateWidget);
+  const addWidget = useDashboardStore((s) => s.addWidget); // Assuming addWidget action exists
 
   // Calculate the next AddWidget position beside existing widgets
   const addWidgetPosition = useMemo(() => {
-    if (widgets.length === 0) return { x: 0, y: 0, w: 4, h: 4, minW: 3, maxW: 6 };
+    const desiredW = 6;
+    const desiredH = 4;
+
+    if (widgets.length === 0) return { x: 0, y: 0, w: desiredW, h: desiredH, minW: desiredW, maxW: desiredW };
 
     const gridCols = 12;
     const positions: boolean[][] = [];
@@ -30,19 +34,22 @@ export default function Dashboard() {
       }
     });
 
-    // Find first horizontal free spot
+    // Find first horizontal free spot with full rectangle free for height
     let newX = 0;
     let newY = 0;
     let found = false;
 
     for (let y = 0; !found; y++) {
-      for (let x = 0; x <= gridCols - 4; x++) {
+      for (let x = 0; x <= gridCols - desiredW; x++) {
         let fits = true;
-        for (let i = x; i < x + 4; i++) {
-          if (positions[y]?.[i]) {
-            fits = false;
-            break;
+        for (let dy = 0; dy < desiredH; dy++) {
+          for (let i = x; i < x + desiredW; i++) {
+            if (positions[y + dy]?.[i]) {
+              fits = false;
+              break;
+            }
           }
+          if (!fits) break;
         }
         if (fits) {
           newX = x;
@@ -53,11 +60,13 @@ export default function Dashboard() {
       }
     }
 
-    return { x: newX, y: newY, w: 4, h: 4, minW: 3, maxW: 6 };
+    // Ensure AddWidget goes beside the last widget
+    if (newX < 6 && widgets.length % 2 === 0) newX = 6; // Move to right side if left side is filled
+    return { x: newX, y: newY, w: desiredW, h: desiredH, minW: desiredW, maxW: desiredW };
   }, [widgets]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 w-full">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 w-full ">
       <div className="mx-auto max-w-[1400px] px-4 py-8 w-full">
         {/* Dashboard Header */}
         <div className="mb-8">
@@ -73,7 +82,7 @@ export default function Dashboard() {
         <ResponsiveGridLayout
           className="layout"
           breakpoints={{ lg: 1400, md: 1200, sm: 992, xs: 768, xxs: 0 }}
-          cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+          cols={{ lg: 12, md: 12, sm: 6, xs: 1, xxs: 1 }}
           rowHeight={60}
           margin={[20, 20]}
           containerPadding={[0, 0]}
@@ -84,7 +93,7 @@ export default function Dashboard() {
           autoSize
           useCSSTransforms
           preventCollision={false}
-          compactType="vertical"
+          compactType="horizontal" // Changed to horizontal for side-by-side placement
           onLayoutChange={(layout) => {
             layout.forEach((item) => {
               if (item.i === "add-widget") return;
@@ -107,7 +116,7 @@ export default function Dashboard() {
           {widgets.map((widget) => (
             <div
               key={widget.id}
-              data-grid={{ ...widget.position, minW: 3, maxW: 6 }}
+              data-grid={{ x: (widgets.indexOf(widget) % 2) * 6, y: Math.floor(widgets.indexOf(widget) / 2) * 4, w: 6, h: 4, minW: 6, maxW: 6 }}
               className="widget-container bg-white dark:bg-gray-800 rounded shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200"
             >
               <WidgetShell
@@ -117,26 +126,26 @@ export default function Dashboard() {
                   symbol: widget.symbol ?? "AAPL", // fallback
                 }}
               />
-
             </div>
           ))}
 
-
+         {/* Add Widget Button */}
+          <div
+            key="add-widget"
+            data-grid={{
+              ...addWidgetPosition,
+              w: 6,
+              h: 4,
+              static: true,
+              isDraggable: false,
+              isResizable: false,
+            }}
+            className="add-widget-container flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded border border-dashed border-gray-400 dark:border-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
+          >
+            <AddWidget />
+          </div>
         </ResponsiveGridLayout>
 
-        {/* Add Widget Button */}
-        <div
-          key="add-widget"
-          data-grid={{
-            ...addWidgetPosition,
-            static: true,
-            isDraggable: false,
-            isResizable: false,
-          }}
-          className="add-widget-container flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded border border-dashed border-gray-400 dark:border-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 max-w-xl my-8 "
-        >
-          <AddWidget />
-        </div>
         {/* Empty State */}
         {widgets.length === 0 && (
           <div className="text-center py-16">

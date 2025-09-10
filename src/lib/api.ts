@@ -10,17 +10,25 @@ export async function apiFetch(
   let url: URL;
 
   if (typeof pathOrParams === "string") {
-    // for dynamic routes: /api/finnhub/{symbol}
+    // Dynamic route: /api/finnhub/{symbol}
     url = new URL(`${BASE_URLS[source]}/${pathOrParams}`, window.location.origin);
   } else {
-    // for query params: /api/alphaVantage?symbol=...
+    // Query params: /api/alphaVantage?symbol=...
     url = new URL(BASE_URLS[source], window.location.origin);
     Object.entries(pathOrParams).forEach(([key, value]) =>
       url.searchParams.append(key, value)
     );
   }
 
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.json();
+  try {
+    const res = await fetch(url.toString());
+    if (!res.ok) {
+      const errData = await res.text();
+      throw new Error(`API error: ${res.status} - ${errData}`);
+    }
+    return await res.json();
+  } catch (err) {
+    console.error("API fetch failed:", err);
+    throw err;
+  }
 }

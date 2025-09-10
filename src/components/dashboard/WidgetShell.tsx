@@ -1,9 +1,10 @@
 "use client";
 import { WidgetConfig } from "@/types/widget";
 import { useDashboardStore } from "@/stores/dashboardStore";
-import ChartWidget from "../widgets/ChartWidget";
+
 import TableWidget from "../widgets/TableWidget";
 import CardWidget from "../widgets/CardWidget";
+import { ChartWidget } from "../widgets/ChartWidget";
 
 export default function WidgetShell({ widget }: { widget: WidgetConfig }) {
   const remove = useDashboardStore((s) => s.removeWidget);

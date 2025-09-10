@@ -5,7 +5,7 @@ import { nanoid } from "nanoid";
 
 type State = {
   widgets: WidgetConfig[];
-  addWidget: (kind: WidgetConfig["kind"]) => void;
+  addWidget: (config: WidgetConfig) => void;
   removeWidget: (id: string) => void;
   updateWidget: (id: string, patch: Partial<WidgetConfig>) => void;
 };
@@ -15,15 +15,8 @@ export const useDashboardStore = create<State>()(
     (set) => ({
       widgets: [],
 
-      addWidget: (kind) => {
-        const newWidget: WidgetConfig = {
-          id: nanoid(),
-          kind,
-          title: `${kind} widget`,
-          position: { x: 0, y: 0, w: 4, h: 6 },
-          refreshIntervalSecs: 30,
-        };
-        set((s) => ({ widgets: [...s.widgets, newWidget] }));
+      addWidget: (config) => {
+        set((s) => ({ widgets: [...s.widgets, config] }));
       },
 
       removeWidget: (id) =>
@@ -36,9 +29,8 @@ export const useDashboardStore = create<State>()(
           ),
         })),
     }),
-    
     {
-      name: "finboard-dashboard", // key in localStorage
+      name: "finboard-dashboard",
     }
   )
 );
