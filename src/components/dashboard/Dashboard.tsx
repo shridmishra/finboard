@@ -13,7 +13,6 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 export default function Dashboard() {
   const widgets = useDashboardStore((s) => s.widgets);
   const updateWidget = useDashboardStore((s) => s.updateWidget);
-  const addWidget = useDashboardStore((s) => s.addWidget); // Assuming addWidget action exists
 
   // Calculate the next AddWidget position beside existing widgets
   const addWidgetPosition = useMemo(() => {
@@ -66,7 +65,7 @@ export default function Dashboard() {
   }, [widgets]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 w-full ">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 w-full">
       <div className="mx-auto max-w-[1400px] px-4 py-8 w-full">
         {/* Dashboard Header */}
         <div className="mb-8">
@@ -93,7 +92,7 @@ export default function Dashboard() {
           autoSize
           useCSSTransforms
           preventCollision={false}
-          compactType="horizontal" // Changed to horizontal for side-by-side placement
+          compactType="horizontal"
           onLayoutChange={(layout) => {
             layout.forEach((item) => {
               if (item.i === "add-widget") return;
@@ -106,7 +105,12 @@ export default function Dashboard() {
                   widget.position.h !== item.h)
               ) {
                 updateWidget(item.i, {
-                  position: { x: item.x, y: item.y, w: item.w, h: item.h },
+                  position: {
+                    x: item.x, y: item.y, w: item.w, h: item.h,
+                    minH: 0,
+                    minW: 0,
+                    maxW: 0
+                  },
                 });
               }
             });
@@ -116,40 +120,47 @@ export default function Dashboard() {
           {widgets.map((widget) => (
             <div
               key={widget.id}
-              data-grid={{ x: (widgets.indexOf(widget) % 2) * 6, y: Math.floor(widgets.indexOf(widget) / 2) * 4, w: 6, h: 4, minW: 6, maxW: 6 }}
+              data-grid={{
+                x: widget.position.x,
+                y: widget.position.y,
+                w: widget.position.w,
+                h: widget.position.h,
+                minW: widget.position.minW || 6, // Default minW if not specified
+                maxW: widget.position.maxW || 12, // Allow full width if needed
+                minH: widget.position.minH || 4, // Default minH if not specified
+              }}
               className="widget-container bg-white dark:bg-gray-800 rounded shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow duration-200"
             >
               <WidgetShell
                 widget={{
                   ...widget,
                   position: { ...widget.position },
-                  symbol: widget.symbol ?? "AAPL", // fallback
+                  symbol: widget.symbol ?? "AAPL",
                 }}
               />
             </div>
           ))}
 
+         
+        </ResponsiveGridLayout>
          {/* Add Widget Button */}
           <div
             key="add-widget"
             data-grid={{
               ...addWidgetPosition,
-              w: 6,
-              h: 4,
               static: true,
               isDraggable: false,
               isResizable: false,
             }}
-            className="add-widget-container flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded border border-dashed border-gray-400 dark:border-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
+            className="add-widget-container mt-12 mx-auto flex items-center justify-center max-w-lg bg-gray-50/50 dark:bg-gray-800/50  hover:bg-gray-100/50 dark:hover:bg-gray-700/50 rounded border border-dashed border-gray-400 dark:border-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
           >
             <AddWidget />
           </div>
-        </ResponsiveGridLayout>
 
         {/* Empty State */}
         {widgets.length === 0 && (
           <div className="text-center py-16">
-            <div className="text-gray-400 dark:text-gray-600 mb-4 ">
+            <div className="text-gray-400 dark:text-gray-600 mb-4">
               <svg
                 className="mx-auto h-16 w-16"
                 fill="none"

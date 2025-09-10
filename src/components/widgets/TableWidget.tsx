@@ -7,7 +7,7 @@ type WidgetConfig = { symbol?: string; refreshIntervalSecs?: number };
 type Quote = { c: number; pc: number };
 
 const symbols = ["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA", "NFLX"];
-const rowsPerPage = 3;
+const rowsPerPage = 8;
 
 async function fetchQuote(symbol: string): Promise<Quote> {
   const res = await fetch(`/api/finnhub?symbol=${symbol}`);
@@ -33,14 +33,15 @@ export default function TableWidget({ widget }: { widget: WidgetConfig }) {
   const totalPages = Math.ceil(symbols.length / rowsPerPage);
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden">
+    <div className="w-full h-full flex flex-col overflow-hidden bg-gray-900 text-white">
+     
       <div className="flex-1 overflow-auto">
-        <table className="w-full text-xs sm:text-sm text-left border-collapse">
-          <thead className="sticky top-0 bg-background text-xs">
-            <tr className="border-b">
-              <th className="p-1 sm:p-2">Symbol</th>
-              <th className="p-1 sm:p-2">Price</th>
-              <th className="p-1 sm:p-2">Change</th>
+        <table className="w-full text-sm border-collapse">
+          <thead className="sticky top-0 bg-gray-800">
+            <tr className="border-b border-gray-700">
+              <th className="p-2 text-left">Company</th>
+              <th className="p-2 text-left">Price</th>
+              <th className="p-2 text-left">Change</th>
             </tr>
           </thead>
           <tbody>
@@ -50,10 +51,10 @@ export default function TableWidget({ widget }: { widget: WidgetConfig }) {
 
               if (!quote || query.isLoading) {
                 return (
-                  <tr key={sym} className="border-b last:border-0">
-                    <td className="p-1 sm:p-2 font-medium">{sym}</td>
-                    <td className="p-1 sm:p-2">Loading…</td>
-                    <td className="p-1 sm:p-2 text-gray-500">––</td>
+                  <tr key={sym} className="border-b border-gray-700 last:border-0">
+                    <td className="p-2 font-medium">{sym}</td>
+                    <td className="p-2">Loading…</td>
+                    <td className="p-2 text-gray-500">––</td>
                   </tr>
                 );
               }
@@ -63,36 +64,34 @@ export default function TableWidget({ widget }: { widget: WidgetConfig }) {
               const changeClass = change < 0 ? "text-red-500" : "text-green-600";
 
               return (
-                <tr key={sym} className="border-b last:border-0">
-                  <td className="p-1 sm:p-2 font-medium">{sym}</td>
-                  <td className="p-1 sm:p-2">${quote.c.toFixed(2)}</td>
-                  <td className={`p-1 sm:p-2 ${changeClass}`}>{changeText}</td>
+                <tr key={sym} className="border-b border-gray-700 last:border-0">
+                  <td className="p-2 font-medium">{sym}</td>
+                  <td className="p-2">${quote.c.toFixed(2)}</td>
+                  <td className={`p-2 ${changeClass}`}>{changeText}</td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
-
-      <div className="flex justify-between items-center mt-1 sm:mt-2 pt-1 sm:pt-2 text-xs border-t">
+      <div className="flex justify-between items-center p-2 bg-gray-800 text-xs border-t border-gray-700">
         <button
           disabled={page === 0}
           onClick={() => setPage((p) => Math.max(p - 1, 0))}
-          className="px-1 sm:px-2 py-0.5 sm:py-1 bg-gray-100 dark:bg-gray-700 rounded disabled:opacity-40"
+          className="px-2 py-1 bg-gray-700 rounded disabled:opacity-40"
         >
           Prev
         </button>
-        <span>
-          {page + 1}/{totalPages}
-        </span>
+        <span>{page + 1}/{totalPages}</span>
         <button
           disabled={page === totalPages - 1}
           onClick={() => setPage((p) => Math.min(p + 1, totalPages - 1))}
-          className="px-1 sm:px-2 py-0.5 sm:py-1 bg-gray-100 dark:bg-gray-700 rounded disabled:opacity-40"
+          className="px-2 py-1 bg-gray-700 rounded disabled:opacity-40"
         >
           Next
         </button>
       </div>
+     
     </div>
   );
 }

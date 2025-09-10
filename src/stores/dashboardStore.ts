@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { WidgetConfig } from "../types/widget";
-import { nanoid } from "nanoid";
+import { WidgetConfig } from "@/types/types";
 
 type State = {
   widgets: WidgetConfig[];

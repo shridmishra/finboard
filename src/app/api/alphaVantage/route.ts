@@ -27,6 +27,7 @@ export async function GET(req: Request) {
     const timeSeries = data["Time Series (5min)"];
     const formattedData = Object.entries(timeSeries)
       .slice(0, 10) // Limit to 10 points for bar chart
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map(([time, values]: [string, any]) => ({
         time: new Date(time).toISOString(),
         open: parseFloat(values["1. open"]),
@@ -35,6 +36,7 @@ export async function GET(req: Request) {
       .reverse(); // Oldest to newest
 
     return NextResponse.json(formattedData);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     console.error("Alpha Vantage fetch failed:", err.message);
     return NextResponse.json({ error: "Alpha Vantage fetch failed" }, { status: 500 });

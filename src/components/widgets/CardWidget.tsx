@@ -1,6 +1,6 @@
 "use client";
 
-import { WidgetConfig } from "@/types/widget";
+import { WidgetConfig } from "@/types/types";
 
 type Props = { widget: WidgetConfig };
 

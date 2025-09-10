@@ -3,20 +3,23 @@
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { useState, useRef, useEffect } from "react";
 import { nanoid } from "nanoid";
+import { LayoutList, Table, ChartColumn, CheckSquare, X } from "lucide-react";
+import { WidgetConfig, WidgetKind, ApiResponse } from "@/types/types"; 
 
 export default function AddWidget() {
   const addWidget = useDashboardStore((s) => s.addWidget);
 
   const [open, setOpen] = useState(false);
   const [widgetName, setWidgetName] = useState("Stock Chart");
+  const [symbol, setSymbol] = useState("AAPL"); 
   const [apiUrl, setApiUrl] = useState("api/finnhub?symbol=AAPL");
-  const [refreshInterval, setRefreshInterval] = useState(60);
-  const [displayMode, setDisplayMode] = useState("chart");
-  const [apiResponse, setApiResponse] = useState<unknown>(null);
+  const [refreshInterval, setRefreshInterval] = useState("");
+  const [displayMode, setDisplayMode] = useState<WidgetKind>("chart");
+  const [apiResponse, setApiResponse] = useState<ApiResponse>(null);
   const [availableFields, setAvailableFields] = useState<string[]>([]);
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const [loadingApi, setLoadingApi] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close modal on outside click
   useEffect(() => {
@@ -30,19 +33,19 @@ export default function AddWidget() {
   }, [open]);
 
   const testApi = async () => {
-    if (!apiUrl) return alert("Please enter API URL");
+    if (!apiUrl) return;
     setLoadingApi(true);
     setApiResponse(null);
     try {
       const res = await fetch(apiUrl);
       if (!res.ok) throw new Error(`API returned status ${res.status}`);
-      const data = await res.json();
-      if (!data || Object.keys(data).length === 0) throw new Error("Empty data returned");
+      const data: ApiResponse = await res.json();
+      if (!data || (typeof data === "object" && Object.keys(data).length === 0)) {
+        throw new Error("Empty data returned");
+      }
       setApiResponse(data);
       setAvailableFields(extractFields(data));
-      alert("API connection successful! Fields extracted.");
-    } catch (err: any) {
-      alert(`API connection failed: ${err.message}`);
+    } catch (err) {
       setApiResponse(null);
       setAvailableFields([]);
     } finally {
@@ -50,16 +53,28 @@ export default function AddWidget() {
     }
   };
 
-  const extractFields = (data: any, prefix = ""): string[] => {
+  const extractFields = (data: ApiResponse, prefix = ""): string[] => {
     let fields: string[] = [];
-    for (const key in data) {
-      const value = data[key];
-      const path = prefix ? `${prefix}.${key}` : key;
-      if (typeof value !== "object" || value === null) {
-        fields.push(path);
-      } else {
-        fields = [...fields, ...extractFields(value, path)];
+    if (!data || typeof data !== "object") return fields;
+
+    // Handle object (Record<string, unknown>)
+    if (!Array.isArray(data)) {
+      for (const key in data) {
+        const value = (data as Record<string, unknown>)[key];
+        const path = prefix ? `${prefix}.${key}` : key;
+        if (typeof value !== "object" || value === null) {
+          fields.push(path);
+        } else {
+          fields = [...fields, ...extractFields(value as ApiResponse, path)];
+        }
       }
+    } else {
+      // Handle array (unknown[])
+      data.forEach((item, index) => {
+        if (typeof item === "object" && item !== null) {
+          fields = [...fields, ...extractFields(item as ApiResponse, `${prefix}[${index}]`)];
+        }
+      });
     }
     return fields;
   };
@@ -67,20 +82,26 @@ export default function AddWidget() {
   const toggleFieldSelection = (field: string) => {
     if (selectedFields.includes(field)) {
       setSelectedFields(selectedFields.filter((f) => f !== field));
+      setRefreshInterval("");
     } else {
       setSelectedFields([...selectedFields, field]);
     }
   };
 
+  const selectAllFields = () => {
+    setSelectedFields([...availableFields]);
+  };
+
   const handleAddWidget = () => {
-    const widget = {
+    const widget: WidgetConfig = {
       id: nanoid(),
       kind: displayMode,
       title: widgetName,
       apiUrl,
-      refreshIntervalSecs: refreshInterval,
+      refreshIntervalSecs: refreshInterval ? Number(refreshInterval) : 0,
       fields: selectedFields,
       position: { x: 0, y: 0, w: 6, h: 6 },
+      symbol, // Add symbol to widget
     };
     addWidget(widget);
     setOpen(false);
@@ -90,7 +111,7 @@ export default function AddWidget() {
     <>
       {/* Add Widget Button */}
       <div
-        className="w-full h-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50/50 dark:bg-gray-800/50 flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-all duration-200 group py-12 "
+        className="max-w-2xl h-full  rounded  flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200 group py-12"
         onClick={() => setOpen(true)}
       >
         <div className="text-center">
@@ -123,21 +144,31 @@ export default function AddWidget() {
               />
             </div>
 
+            {/* Symbol */}
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Symbol</label>
+              <input
+                type="text"
+                value={symbol}
+                onChange={(e) => setSymbol(e.target.value)}
+                className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+                placeholder="e.g., AAPL"
+              />
+            </div>
+
             {/* API URL */}
-            <div className="mb-3"> 
+            <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">API URL</label>
               <div className="flex space-x-2 w-full">
-                <div className="flex ">
-                   <div className="bg-gray-500 text-secondary rounded-l flex items-center justify-center p-1">https://</div>
-                <input
-                  type="text"
-                  value={apiUrl}
-                  onChange={(e) => setApiUrl(e.target.value)}
-                  className="flex-1 p-2 border rounded-r bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
-
-                />
+                <div className="flex w-full">
+                  <div className="bg-gray-500 text-secondary rounded-l flex items-center justify-center p-1">https://</div>
+                  <input
+                    type="text"
+                    value={apiUrl}
+                    onChange={(e) => setApiUrl(e.target.value)}
+                    className="flex-1 p-2 border rounded-r bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+                  />
                 </div>
-               
                 <button
                   onClick={testApi}
                   className={`px-3 rounded ${loadingApi ? "bg-gray-400" : "bg-green-500 hover:bg-green-600"} text-white`}
@@ -146,7 +177,8 @@ export default function AddWidget() {
                   {loadingApi ? "Testing..." : "Test"}
                 </button>
               </div>
-              {apiResponse && <p className="text-xs text-green-600 mt-1">API connection successful!</p>}
+              {apiResponse && <div className="text-xs text-primary border-1 bg-green-600 mt-2 border-green-800 rounded p-1">API connection successful!</div>}
+              {!apiResponse && apiUrl && !loadingApi && <div className="text-xs text-red-600 mt-1">API connection failed.</div>}
             </div>
 
             {/* Refresh Interval */}
@@ -155,7 +187,7 @@ export default function AddWidget() {
               <input
                 type="number"
                 value={refreshInterval}
-                onChange={(e) => setRefreshInterval(Number(e.target.value))}
+                onChange={(e) => setRefreshInterval(e.target.value)}
                 className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
               />
             </div>
@@ -164,31 +196,48 @@ export default function AddWidget() {
             <div className="mb-3">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Display Mode</label>
               <div className="flex space-x-2">
-                {["card", "table", "chart"].map((mode) => (
+                {(["card", "table", "chart"] as WidgetKind[]).map((mode) => (
                   <button
                     key={mode}
                     onClick={() => setDisplayMode(mode)}
-                    className={`px-3 py-1 rounded ${displayMode === mode ? "bg-blue-500 text-white" : "bg-gray-200 dark:bg-gray-600"}`}
+                    className={`px-3 py-1 rounded flex items-center ${displayMode === mode ? "bg-blue-500 text-white" : "bg-gray-200 dark:bg-gray-600"}`}
                   >
+                    {mode === "card" && <LayoutList className="mr-1 h-4 w-4" />}
+                    {mode === "table" && <Table className="mr-1 h-4 w-4" />}
+                    {mode === "chart" && <ChartColumn className="mr-1 h-4 w-4" />}
                     {mode.charAt(0).toUpperCase() + mode.slice(1)}
                   </button>
                 ))}
               </div>
             </div>
 
+            {/* Search Fields */}
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search Fields</label>
+              <input
+                type="text"
+                placeholder="Search for fields..."
+                className="w-full p-2 border rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+              />
+            </div>
+
             {/* Available Fields */}
             {availableFields.length > 0 && (
               <div className="mb-3 max-h-40 overflow-auto border p-2 rounded bg-gray-50 dark:bg-gray-700">
-                <p className="text-sm font-medium mb-1">Select Fields</p>
+                <p className="text-sm font-medium mb-1 flex justify-between items-center">
+                  Available Fields
+                  <button onClick={selectAllFields} className="text-blue-500 flex items-center">
+                    <CheckSquare className="h-4 w-4 mr-1" /> All
+                  </button>
+                </p>
                 {availableFields.map((field) => (
-                  <div key={field} className="flex justify-between items-center mb-1">
-                    <span>{field}</span>
-                    <button
-                      onClick={() => toggleFieldSelection(field)}
-                      className="text-green-500"
-                    >
-                      {selectedFields.includes(field) ? "✓" : "+"}
-                    </button>
+                  <div
+                    key={field}
+                    onClick={() => toggleFieldSelection(field)}
+                    className={`flex justify-between items-center mb-1 p-2 rounded cursor-pointer ${selectedFields.includes(field) ? "bg-blue-100 dark:bg-gray-800" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                  >
+                    <span>{field.replace("c.", "current_price.").replace("d.", "daily.").replace("t.", "time_series.")}</span>
+                    <span>{selectedFields.includes(field) ? <CheckSquare className="h-4 w-4 text-green-500" /> : <CheckSquare className="h-4 w-4 text-gray-400" />}</span>
                   </div>
                 ))}
               </div>
@@ -200,12 +249,12 @@ export default function AddWidget() {
                 <p className="text-sm font-medium mb-1">Selected Fields</p>
                 {selectedFields.map((field) => (
                   <div key={field} className="flex justify-between items-center mb-1">
-                    <span>{field}</span>
+                    <span>{field.replace("c.", "current_price.").replace("d.", "daily.").replace("t.", "time_series.")}</span>
                     <button
                       onClick={() => toggleFieldSelection(field)}
                       className="text-red-500"
                     >
-                      x
+                      <X className="h-4 w-4" />
                     </button>
                   </div>
                 ))}
@@ -223,7 +272,7 @@ export default function AddWidget() {
               <button
                 onClick={handleAddWidget}
                 className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                disabled={!apiResponse || selectedFields.length === 0}
+                disabled={!apiResponse || selectedFields.length === 0 || !symbol}
               >
                 Add Widget
               </button>
