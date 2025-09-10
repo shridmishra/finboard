@@ -33,11 +33,11 @@ export default function TableWidget({ widget }: { widget: WidgetConfig }) {
   const totalPages = Math.ceil(symbols.length / rowsPerPage);
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden bg-gray-900 text-white">
+    <div className="w-full h-full flex flex-col overflow-hidden bg-white dark:bg-gray-800 text-text">
      
       <div className="flex-1 overflow-auto">
         <table className="w-full text-sm border-collapse">
-          <thead className="sticky top-0 bg-gray-800">
+          <thead className="sticky top-0 bg-white dark:bg-gray-700">
             <tr className="border-b border-gray-700">
               <th className="p-2 text-left">Company</th>
               <th className="p-2 text-left">Price</th>
@@ -74,11 +74,11 @@ export default function TableWidget({ widget }: { widget: WidgetConfig }) {
           </tbody>
         </table>
       </div>
-      <div className="flex justify-between items-center p-2 bg-gray-800 text-xs border-t border-gray-700">
+      <div className="flex justify-between items-center p-2 bg-white dark:bg-gray-700 text-xs border-t border-gray-700">
         <button
           disabled={page === 0}
           onClick={() => setPage((p) => Math.max(p - 1, 0))}
-          className="px-2 py-1 bg-gray-700 rounded disabled:opacity-40"
+          className="px-2 py-1 bg-background rounded disabled:opacity-40"
         >
           Prev
         </button>

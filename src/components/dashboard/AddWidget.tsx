@@ -45,6 +45,7 @@ export default function AddWidget() {
       }
       setApiResponse(data);
       setAvailableFields(extractFields(data));
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       setApiResponse(null);
       setAvailableFields([]);
@@ -100,7 +101,12 @@ export default function AddWidget() {
       apiUrl,
       refreshIntervalSecs: refreshInterval ? Number(refreshInterval) : 0,
       fields: selectedFields,
-      position: { x: 0, y: 0, w: 6, h: 6 },
+      position: {
+        x: 0, y: 0, w: 6, h: 6,
+        minW: 0,
+        maxW: 0,
+        minH: 0
+      },
       symbol, // Add symbol to widget
     };
     addWidget(widget);

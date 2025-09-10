@@ -10,7 +10,7 @@ const mockMetrics = [
   { title: "Top Gainer", value: "AAPL +3.2%", change: "" },
   { title: "Top Loser", value: "TSLA -1.5%", change: "" },
 ];
-export default function CardWidget({ widget }: Props) {
+export default function CardWidget({  }: Props) {
   const metric = mockMetrics[Math.floor(Math.random() * mockMetrics.length)];
 
   return (

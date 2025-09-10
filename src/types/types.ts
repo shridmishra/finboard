@@ -1,6 +1,9 @@
 export type WidgetKind = "card" | "table" | "chart";
 
 export interface WidgetPosition {
+  minW: number;
+  maxW: number;
+  minH: number;
   x: number;
   y: number;
   w: number;
