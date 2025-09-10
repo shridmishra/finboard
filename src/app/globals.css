@@ -9,8 +9,8 @@
 /* Tailwind theme tokens — these generate utilities like font-heading, bg-background */
 @theme inline {
   /* Font families */
-  --font-heading: "Sora", sans-serif;   /* or "DM Sans" */
-  --font-body: "Sora", sans-serif;      /* or "DM Sans" */
+  --font-heading: "DM Sans", sans-serif;   /* or "DM Sans" */
+  --font-body: "DM Sans", sans-serif;      /* or "DM Sans" */
 
   /* Colors mapped to CSS variables */
   --color-background: var(--background);
@@ -35,7 +35,7 @@
 
 /* Dark mode variables */
 .dark {
-  --background: oklch(22% 0.05 145);   /* forest green background */
+  --background: oklch(12% 0.05 145);   /* forest green background */
   --foreground: oklch(95% 0.02 145);   /* soft light text */
   --main: oklch(65% 0.20 145);         /* deeper green for accents */
   --border: oklch(85% 0.03 145);

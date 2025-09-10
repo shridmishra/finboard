@@ -4,4 +4,7 @@ export interface WidgetConfig {
   title: string;
   position: { x: number; y: number; w: number; h: number };
   refreshIntervalSecs?: number;
+
+  symbol?: string;         
+  apiProvider?: "finnhub" | "alphaVantage"; 
 }
