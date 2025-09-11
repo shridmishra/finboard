@@ -99,7 +99,7 @@ export default function WidgetShell({ widget }: { widget: WidgetConfig }) {
         )}
         {widget.kind === "card" && (
           <div className="w-full h-full p-2 md:p-4">
-            <CardWidget widget={{ ...widget }} />
+            <CardWidget   widget={{ ...widget }} />
           </div>
         )}
       </div>

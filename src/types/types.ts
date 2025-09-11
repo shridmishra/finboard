@@ -18,7 +18,9 @@ export interface WidgetConfig {
   refreshIntervalSecs: number;
   fields: string[];
   position: WidgetPosition;
-  symbol: string;
+  symbol?: string;
+  type?: "watchlist" | "gainers" | "performance" | "financial";
+  api?: "finnhub" | "alphavantage";
 }
 
 export type ApiResponse = Record<string, unknown> | unknown[] | null;

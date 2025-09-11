@@ -1,6 +1,6 @@
 // src/hooks/useQuote.ts
 import { useQuery } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api/api";
 
 export function useQuote(symbol: string) {
   return useQuery({

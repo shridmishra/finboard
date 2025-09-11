@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api/api";
 
 type CacheKey = string; // "finnhub:symbol=AAPL"
 type ApiCache = Record<CacheKey, unknown>;

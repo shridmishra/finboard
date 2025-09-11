@@ -3,18 +3,20 @@
 import { useDashboardStore } from "@/stores/dashboardStore";
 import { useState, useRef, useEffect } from "react";
 import { nanoid } from "nanoid";
-import { LayoutList, Table, ChartColumn, CheckSquare, X } from "lucide-react";
-import { WidgetConfig, WidgetKind, ApiResponse } from "@/types/types"; 
+import { LayoutList, Table, ChartColumn, Copy, CheckSquare, X } from "lucide-react";
+
+import { WidgetConfig, WidgetKind, ApiResponse } from "@/types/types";
 
 export default function AddWidget() {
   const addWidget = useDashboardStore((s) => s.addWidget);
 
   const [open, setOpen] = useState(false);
-  const [widgetName, setWidgetName] = useState("Stock Chart");
-  const [symbol, setSymbol] = useState("AAPL"); 
+  const [widgetName, setWidgetName] = useState("Widget");
+  const [copied, setCopied] = useState(false);
+  const [symbol, setSymbol] = useState("AAPL");
   const [apiUrl, setApiUrl] = useState("api/finnhub?symbol=AAPL");
   const [refreshInterval, setRefreshInterval] = useState("");
-  const [displayMode, setDisplayMode] = useState<WidgetKind>("chart");
+  const [displayMode, setDisplayMode] = useState<WidgetKind>("table");
   const [apiResponse, setApiResponse] = useState<ApiResponse>(null);
   const [availableFields, setAvailableFields] = useState<string[]>([]);
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
@@ -45,7 +47,7 @@ export default function AddWidget() {
       }
       setApiResponse(data);
       setAvailableFields(extractFields(data));
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       setApiResponse(null);
       setAvailableFields([]);
@@ -165,8 +167,42 @@ export default function AddWidget() {
             {/* API URL */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">API URL</label>
+              
+              <div className="relative text-xs my-2 border rounded p-2 bg-gray-50 dark:bg-gray-700">
+                /api/alphaVantage?function=TIME_SERIES_DAILY&symbol=IBM&apikey=demo
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      "/api/alphaVantage?function=TIME_SERIES_DAILY&symbol=IBM&apikey=demo"
+                    );
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000); // reset after 2s
+                  }}
+                  className="absolute top-1 right-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
+                >
+                  {copied ? <CheckSquare size={14} className="text-green-500" /> : <Copy size={14} />}
+                </button>
+              </div>
+              <div className="relative text-xs my-2 border rounded p-2 bg-gray-50 dark:bg-gray-700">
+                /api/finnhub?symbol=AAPL
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      "api/finnhub?symbol=AAPL"
+                    );
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000); // reset after 2s
+                  }}
+                  className="absolute top-1 right-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
+                >
+                  {copied ? <CheckSquare size={14} className="text-green-500" /> : <Copy size={14} />}
+                </button>
+              </div>
               <div className="flex space-x-2 w-full">
                 <div className="flex w-full">
+
                   <div className="bg-gray-500 text-secondary rounded-l flex items-center justify-center p-1">https://</div>
                   <input
                     type="text"
